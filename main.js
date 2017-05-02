@@ -90,6 +90,9 @@ function askQuestion(cardCount) {
 					}
 				});
 			}
+			else {
+				console.log("Thanks for playing. Come back again soon!");
+			}
 		});
 	}
 }
@@ -100,16 +103,17 @@ function addBasicCard(cardCount) {
 		console.log("***New Card #" + cardCount + "***");
 		inquirer.prompt([
 			{
-				name: "question",
+				name: "front",
 				message: "Please enter a new question:"
 			},
 			{
-				name: "answer",
+				name: "back",
 				message: "Please enter the answer to the question:"
 			}
 		]).then(function(answers) {
-			var card = new BasicCard(answers.question, answers.answer)
+			var card = new BasicCard(answers.front, answers.back);
 			basicCardsArray.push(card);
+			cardsArray.push(card);
 			console.log("Card added succesfully!");
 			// Execute function with new cardCount in order to begin recursive looop
 			addBasicCard(cardCount);
@@ -117,11 +121,36 @@ function addBasicCard(cardCount) {
 	}
 	else {
 		console.log("All three cards have been added!");
+		askQuestion(0);
 	}
 }
 
-function addClozeCard() {
-	console.log("Option coming soon...");
+function addClozeCard(cardCount) {
+	if (cardCount < 3) {
+		cardCount++
+		console.log("***New Card #" + cardCount + "***");
+		inquirer.prompt([
+			{
+				name: "text",
+				message: "Please enter the full text of the card:"
+			},
+			{
+				name: "cloze",
+				message: "Please enter the cloze portion of the card:"
+			}
+		]).then(function(answers) {
+			var card = new ClozeCard(answers.text, answers.cloze);
+			clozeCardsArray.push(card);
+			cardsArray.push(card);
+			console.log("Card added succesfully!");
+			// Execute function with new cardCount in order to begin recursive looop
+			addClozeCard(cardCount);
+		});
+	}
+	else {
+		console.log("All three cards have been added!");
+		askQuestion(0);
+	}
 }
 
 // Executing askQuestion with a cardCount of 0 in order to begin recursive loop
