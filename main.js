@@ -26,7 +26,7 @@ cardsArray.push(card1, card2, card3, card4, card5, card6);
 // Runs through the flashcards for the user using recursion, basic cards first
 // followed by cloze cards
 // Uses inquirer to ask the questions and take in user answers/determine correctness
-function askQuestions(cardCount) {
+function askQuestion(cardCount) {
 	if (cardCount < basicCardsArray.length) {
 		inquirer.prompt([
 			{
@@ -40,8 +40,9 @@ function askQuestions(cardCount) {
 			else {
 				console.log("Incorrect. The correct answer was " + cardsArray[cardCount].back + ".");
 			}
+			// Increase cardCount and use recursion to ask next question
 			cardCount++;
-			askQuestions(cardCount);
+			askQuestion(cardCount);
 		})
 	}
 	else if (cardCount < basicCardsArray.length + clozeCardsArray.length) {
@@ -51,22 +52,77 @@ function askQuestions(cardCount) {
 				message: cardsArray[cardCount].partial
 			}
 		]).then(function(answer) {
-			if (answer.card === cardsArray[cardCount].cloze) {
+			if (answer.card.toLowerCase() === cardsArray[cardCount].cloze.toLowerCase()) {
 				console.log("Correct!");
 			}
 			else {
 				console.log("Incorrect. The correct answer was " + cardsArray[cardCount].cloze);
 			}
+			// Increase cardCount and use recursion to ask next question
 			cardCount++;
-			askQuestions(cardCount);
+			askQuestion(cardCount);
 		});
 	}
-	// Need to use inquirer for user to decided if they want to make cards and then run
-	// through a function to create the new cards
+	// Use inquirer to ask the user if they would like to add a card. If the user confirms then
+	// they need to choose the card type and the appropriate function will be executed
 	else {
-		console.log("You have completed the questions. Would you like to add your own for next time?");
+		inquirer.prompt([
+			{
+				name: "confirm",
+				type: "confirm",
+				message: "You have completed the flashcards. Would you like to add your own for next time?"
+			}
+		]).then(function(answer) {
+			if (answer.confirm === true) {
+				inquirer.prompt([
+					{
+						name: "cardType",
+						type: "list",
+						message: "Would type of cards would you like to add?",
+						choices: ["basic", "cloze"]		
+					}
+				]).then(function(answer) {
+					if (answer.cardType === "basic") {
+						addBasicCard(0);
+					}
+					else {
+						addClozeCard(0);
+					}
+				});
+			}
+		});
 	}
 }
 
-// Executing askQuestions with a cardCount of 0 in order to begin recursive loop
-askQuestions(0);
+function addBasicCard(cardCount) {
+	if (cardCount < 3) {
+		cardCount++
+		console.log("***New Card #" + cardCount + "***");
+		inquirer.prompt([
+			{
+				name: "question",
+				message: "Please enter a new question:"
+			},
+			{
+				name: "answer",
+				message: "Please enter the answer to the question:"
+			}
+		]).then(function(answers) {
+			var card = new BasicCard(answers.question, answers.answer)
+			basicCardsArray.push(card);
+			console.log("Card added succesfully!");
+			// Execute function with new cardCount in order to begin recursive looop
+			addBasicCard(cardCount);
+		});
+	}
+	else {
+		console.log("All three cards have been added!");
+	}
+}
+
+function addClozeCard() {
+	console.log("Option coming soon...");
+}
+
+// Executing askQuestion with a cardCount of 0 in order to begin recursive loop
+askQuestion(0);
