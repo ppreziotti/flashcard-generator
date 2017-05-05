@@ -9,62 +9,62 @@ var ClozeCard = require("./clozeCard.js");
 // Creating three types of each card and then pushing them to the appropriate arrays
 var basicCardsArray = [];
 var clozeCardsArray = [];
-var cardsArray = [];
 
-var card1 = new BasicCard("In what year did North Carolina become a state?", "1789");
-var card2 = new BasicCard("In what year did the Wright Brothers first succesfully fly a plane in Kitty Hawk, NC?", "1903");
-var card3 = new BasicCard("In what year did UNC win its first men's basketball national championship?", "1957");
+var basicCard1 = new BasicCard("In what year did North Carolina become a state?", "1789");
+var basicCard2 = new BasicCard("In what year did the Wright Brothers first succesfully fly a plane in Kitty Hawk, NC?", "1903");
+var basicCard3 = new BasicCard("In what year did UNC win its first men's basketball national championship?", "1957");
 
-var card4 = new ClozeCard("Charlotte is the largest city in North Carolina.", "Charlotte");
-var card5 = new ClozeCard("The cardinal is the North Carolina state bird.", "cardinal");
-var card6 = new ClozeCard("North Carolina's state nickname is the Tar Heel State.", "Tar Heel State");
+var clozeCard1 = new ClozeCard("Charlotte is the largest city in North Carolina.", "Charlotte");
+var clozeCard2 = new ClozeCard("The cardinal is the North Carolina state bird.", "cardinal");
+var clozeCard3 = new ClozeCard("North Carolina's state nickname is the Tar Heel State.", "Tar Heel State");
 
-basicCardsArray.push(card1, card2, card3)
-clozeCardsArray.push(card4, card5, card6);
-cardsArray.push(card1, card2, card3, card4, card5, card6);
+clozeCardsArray.push(clozeCard1, clozeCard2, clozeCard3);
+basicCardsArray.push(basicCard1, basicCard2, basicCard3);
 
-// Runs through the flashcards for the user using recursion, basic cards first
-// followed by cloze cards
-// Uses inquirer to ask the questions and take in user answers/determine correctness
-function askQuestion(cardCount) {
+// User picks the option of playing either the basic or cloze flashcards through inquirer
+inquirer.prompt([
+	{
+		name: "cardType",
+		type: "list",
+		message: "Welcome! What type of flashcards would you like to go through?",
+		choices: ["basic", "cloze"]		
+	}
+]).then(function(answer) {
+	if (answer.cardType === "basic") {
+		// Executing playBasic with a cardCount of 0 in order to begin recursive loop through 
+		// basic flashcards
+		playBasic(0);
+	}
+	else {
+		// Executing playCloze with a cardCount of 0 in order to begin recursive loop through 
+		// cloze flashcards
+		playCloze(0);
+	}
+});
+
+// Runs through the basic flashcards using recursion. User answers are are submitted
+// through inquirer
+function playBasic(cardCount) {
 	if (cardCount < basicCardsArray.length) {
 		inquirer.prompt([
 			{
 				name: "card",
-				message: cardsArray[cardCount].front
+				message: basicCardsArray[cardCount].front
 			}
 		]).then(function(answer) {
-			if (answer.card === cardsArray[cardCount].back) {
+			if (answer.card === basicCardsArray[cardCount].back) {
 				console.log("Correct!");
 			}
 			else {
-				console.log("Incorrect. The correct answer was " + cardsArray[cardCount].back + ".");
+				console.log("Incorrect. The correct answer was " + basicCardsArray[cardCount].back + ".");
 			}
-			// Increase cardCount and use recursion to ask next question
+			// Increase cardCount and use recursion to play next card
 			cardCount++;
-			askQuestion(cardCount);
-		})
-	}
-	else if (cardCount < basicCardsArray.length + clozeCardsArray.length) {
-		inquirer.prompt([
-			{
-				name: "card",
-				message: cardsArray[cardCount].partial
-			}
-		]).then(function(answer) {
-			if (answer.card.toLowerCase() === cardsArray[cardCount].cloze.toLowerCase()) {
-				console.log("Correct!");
-			}
-			else {
-				console.log("Incorrect. The correct answer was " + cardsArray[cardCount].cloze);
-			}
-			// Increase cardCount and use recursion to ask next question
-			cardCount++;
-			askQuestion(cardCount);
+			playBasic(cardCount);
 		});
 	}
-	// Use inquirer to ask the user if they would like to add a card. If the user confirms then
-	// they need to choose the card type and the appropriate function will be executed
+	// Uses inquirer to ask the user if they would like to add their own cards
+	// Runs the addBasicCard function if the user confirms
 	else {
 		inquirer.prompt([
 			{
@@ -74,32 +74,61 @@ function askQuestion(cardCount) {
 			}
 		]).then(function(answer) {
 			if (answer.confirm === true) {
-				inquirer.prompt([
-					{
-						name: "cardType",
-						type: "list",
-						message: "Would type of cards would you like to add?",
-						choices: ["basic", "cloze"]		
-					}
-				]).then(function(answer) {
-					if (answer.cardType === "basic") {
-						addBasicCard(0);
-					}
-					else {
-						addClozeCard(0);
-					}
-				});
+				addBasicCard(0);
 			}
 			else {
-				console.log("Thanks for playing. Come back again soon!");
+				console.log("Thanks for playing! Come back again soon.");
 			}
 		});
 	}
 }
 
+// Runs through the cloze flashcards using recursion. User answers are are submitted
+// through inquirer
+function playCloze(cardCount) {
+	if (cardCount < clozeCardsArray.length) {
+		inquirer.prompt([
+			{
+				name: "card",
+				message: clozeCardsArray[cardCount].partial
+			}
+		]).then(function(answer) {
+			if (answer.card.trim().toLowerCase() === clozeCardsArray[cardCount].cloze.trim()toLowerCase()) {
+				console.log("Correct!");
+			}
+			else {
+				console.log("Incorrect. " + clozeCardsArray[cardCount].text);
+			}
+			// Increase cardCount and use recursion to play next card
+			cardCount++;
+			playCloze(cardCount);
+		});
+	}
+	// Uses inquirer to ask the user if they would like to add their own cards
+	// Runs the addClozeCard function if the user confirms
+	else {
+		inquirer.prompt([
+			{
+				name: "confirm",
+				type: "confirm",
+				message: "You have completed the flashcards. Would you like to add your own for next time?"
+			}
+		]).then(function(answer) {
+			if (answer.confirm === true) {
+				addClozeCard(0);
+			}
+			else {
+				console.log("Thanks for playing! Come back again soon.");
+			}
+		});
+	}
+}
+
+// User submits the front and back for three separate flashcards and then
+// is given the option to go through the cards again
 function addBasicCard(cardCount) {
 	if (cardCount < 3) {
-		cardCount++
+		cardCount++;
 		console.log("***New Card #" + cardCount + "***");
 		inquirer.prompt([
 			{
@@ -113,21 +142,35 @@ function addBasicCard(cardCount) {
 		]).then(function(answers) {
 			var card = new BasicCard(answers.front, answers.back);
 			basicCardsArray.push(card);
-			cardsArray.push(card);
 			console.log("Card added succesfully!");
 			// Execute function with new cardCount in order to begin recursive looop
 			addBasicCard(cardCount);
 		});
 	}
 	else {
-		console.log("All three cards have been added!");
-		askQuestion(0);
+		console.log("Your cards have been added!");
+		inquirer.prompt([
+			{
+				name: "confirm",
+				type: "confirm",
+				message: "Would you like to go through the cards again?"
+			}
+		]).then(function(answer) {
+			if (answer.confirm === true) {
+				playBasic(0);
+			}
+			else {
+				console.log("Thanks for playing. Come back again soon!");
+			}
+		});
 	}
 }
 
+// User submits full card text and cloze portion for three separate flashcards and then
+// is given the option to go through the cards again
 function addClozeCard(cardCount) {
 	if (cardCount < 3) {
-		cardCount++
+		cardCount++;
 		console.log("***New Card #" + cardCount + "***");
 		inquirer.prompt([
 			{
@@ -139,19 +182,33 @@ function addClozeCard(cardCount) {
 				message: "Please enter the cloze portion of the card:"
 			}
 		]).then(function(answers) {
-			var card = new ClozeCard(answers.text, answers.cloze);
-			clozeCardsArray.push(card);
-			cardsArray.push(card);
-			console.log("Card added succesfully!");
+			if (!answers.text.includes(answers.cloze)) {
+				console.log("Card cannot be added. Card text does not contain the cloze portion");
+			}
+			else {
+				var card = new ClozeCard(answers.text, answers.cloze);
+				clozeCardsArray.push(card);
+				console.log("Card added succesfully!");
+			}
 			// Execute function with new cardCount in order to begin recursive looop
 			addClozeCard(cardCount);
 		});
 	}
 	else {
-		console.log("All three cards have been added!");
-		askQuestion(0);
+		console.log("Your cards have been added!");
+		inquirer.prompt([
+			{
+				name: "confirm",
+				type: "confirm",
+				message: "Would you like to go through the cards again?"
+			}
+		]).then(function(answer) {
+			if (answer.confirm === true) {
+				playCloze(0);
+			}
+			else {
+				console.log("Thanks for playing. Come back again soon!");
+			}
+		});
 	}
 }
-
-// Executing askQuestion with a cardCount of 0 in order to begin recursive loop
-askQuestion(0);
