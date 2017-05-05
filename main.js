@@ -5,42 +5,45 @@ var BasicCard = require("./basicCard.js");
 // Requiring the ClozeCard module from clozeCard.js
 var ClozeCard = require("./clozeCard.js");
 
-// Creating empty arrays for basic cards, cloze cards, and all of the cards combined
+// Creating empty arrays for basic cards and  cloze cards
 // Creating three types of each card and then pushing them to the appropriate arrays
 var basicCardsArray = [];
 var clozeCardsArray = [];
 
 var basicCard1 = new BasicCard("In what year did North Carolina become a state?", "1789");
-var basicCard2 = new BasicCard("In what year did the Wright Brothers first succesfully fly a plane in Kitty Hawk, NC?", "1903");
-var basicCard3 = new BasicCard("In what year did UNC win its first men's basketball national championship?", "1957");
+var basicCard2 = new BasicCard("In what North Carolina town did the Wright Brothers first succesfully fly a plane?", "Kitty Hawk");
+var basicCard3 = new BasicCard("What legendary coach is the UNC basketball arena named after?", "Dean Smith");
+
+basicCardsArray.push(basicCard1, basicCard2, basicCard3);
 
 var clozeCard1 = new ClozeCard("Charlotte is the largest city in North Carolina.", "Charlotte");
 var clozeCard2 = new ClozeCard("The cardinal is the North Carolina state bird.", "cardinal");
-var clozeCard3 = new ClozeCard("North Carolina's state nickname is the Tar Heel State.", "Tar Heel State");
+var clozeCard3 = new ClozeCard("North Carolina's state nickname is the Tar Heel State.", "Tar Heel");
 
 clozeCardsArray.push(clozeCard1, clozeCard2, clozeCard3);
-basicCardsArray.push(basicCard1, basicCard2, basicCard3);
 
 // User picks the option of playing either the basic or cloze flashcards through inquirer
-inquirer.prompt([
-	{
-		name: "cardType",
-		type: "list",
-		message: "Welcome! What type of flashcards would you like to go through?",
-		choices: ["basic", "cloze"]		
-	}
-]).then(function(answer) {
-	if (answer.cardType === "basic") {
-		// Executing playBasic with a cardCount of 0 in order to begin recursive loop through 
-		// basic flashcards
-		playBasic(0);
-	}
-	else {
-		// Executing playCloze with a cardCount of 0 in order to begin recursive loop through 
-		// cloze flashcards
-		playCloze(0);
-	}
-});
+function choosePlay() {
+	inquirer.prompt([
+		{
+			name: "cardType",
+			type: "list",
+			message: "Welcome! What type of flashcards would you like to go through?",
+			choices: ["basic", "cloze"]		
+		}
+	]).then(function(answer) {
+		if (answer.cardType === "basic") {
+			// Executing playBasic with a cardCount of 0 in order to begin recursive loop through 
+			// basic flashcards
+			playBasic(0);
+		}
+		else {
+			// Executing playCloze with a cardCount of 0 in order to begin recursive loop through 
+			// cloze flashcards
+			playCloze(0);
+		}
+	});
+}
 
 // Runs through the basic flashcards using recursion. User answers are are submitted
 // through inquirer
@@ -52,7 +55,7 @@ function playBasic(cardCount) {
 				message: basicCardsArray[cardCount].front
 			}
 		]).then(function(answer) {
-			if (answer.card === basicCardsArray[cardCount].back) {
+			if (answer.card.trim().toLowerCase() === basicCardsArray[cardCount].back.trim().toLowerCase()) {
 				console.log("Correct!");
 			}
 			else {
@@ -77,7 +80,20 @@ function playBasic(cardCount) {
 				addBasicCard(0);
 			}
 			else {
-				console.log("Thanks for playing! Come back again soon.");
+				inquirer.prompt([
+					{
+						name: "confirm",
+						type: "confirm",
+						message: "Would you like to go through the flashcards again?"
+					}
+				]).then(function(answer) {
+					if (answer.confirm === true) {
+						choosePlay();
+					}
+					else {
+						console.log("Thanks for playing. Come back again soon!");
+					}
+				});
 			}
 		});
 	}
@@ -93,7 +109,7 @@ function playCloze(cardCount) {
 				message: clozeCardsArray[cardCount].partial
 			}
 		]).then(function(answer) {
-			if (answer.card.trim().toLowerCase() === clozeCardsArray[cardCount].cloze.trim()toLowerCase()) {
+			if (answer.card.trim().toLowerCase() === clozeCardsArray[cardCount].cloze.trim().toLowerCase()) {
 				console.log("Correct!");
 			}
 			else {
@@ -118,7 +134,20 @@ function playCloze(cardCount) {
 				addClozeCard(0);
 			}
 			else {
-				console.log("Thanks for playing! Come back again soon.");
+				inquirer.prompt([
+					{
+						name: "confirm",
+						type: "confirm",
+						message: "Would you like to go through the flashcards again?"
+					}
+				]).then(function(answer) {
+					if (answer.confirm === true) {
+						choosePlay();
+					}
+					else {
+						console.log("Thanks for playing. Come back again soon!");
+					}
+				});
 			}
 		});
 	}
@@ -148,16 +177,15 @@ function addBasicCard(cardCount) {
 		});
 	}
 	else {
-		console.log("Your cards have been added!");
 		inquirer.prompt([
 			{
 				name: "confirm",
 				type: "confirm",
-				message: "Would you like to go through the cards again?"
+				message: "Would you like to go through the flashcards again?"
 			}
 		]).then(function(answer) {
 			if (answer.confirm === true) {
-				playBasic(0);
+				choosePlay();
 			}
 			else {
 				console.log("Thanks for playing. Come back again soon!");
@@ -182,6 +210,8 @@ function addClozeCard(cardCount) {
 				message: "Please enter the cloze portion of the card:"
 			}
 		]).then(function(answers) {
+			// Card will not be added if the full text does not contain the cloze portion
+			// entered by the user
 			if (!answers.text.includes(answers.cloze)) {
 				console.log("Card cannot be added. Card text does not contain the cloze portion");
 			}
@@ -195,7 +225,6 @@ function addClozeCard(cardCount) {
 		});
 	}
 	else {
-		console.log("Your cards have been added!");
 		inquirer.prompt([
 			{
 				name: "confirm",
@@ -204,7 +233,7 @@ function addClozeCard(cardCount) {
 			}
 		]).then(function(answer) {
 			if (answer.confirm === true) {
-				playCloze(0);
+				choosePlay();
 			}
 			else {
 				console.log("Thanks for playing. Come back again soon!");
@@ -212,3 +241,6 @@ function addClozeCard(cardCount) {
 		});
 	}
 }
+
+// Executing choosePlay function to begin program
+choosePlay();
